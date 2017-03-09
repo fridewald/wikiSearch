@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}HitSearch{% endblock %}
+
+{% block page_content %}
+    <div class="page-header">
+        <h1>HitSearch</h1>
+    </div>
+    {{ wtf.quick_form(form) }}
+    {% if result %}
+    <h3>
+        Hab ihn gefunden. Du musst diesen Links folgen {{ result }}.
+    </h3>
+    {% endif %}
+{% endblock %}
+
+<!--<head>
+    <meta charset="UTF-8">
+    <title>HitSearch</title>
+</head>
+<body>
+    <h1>HitSearch</h1>
+    <form action="" methode="post">
+        <input type="text," name="Wiki Url">
+        <input type="submit" value="Suche">
+    </form>
+</body>
+</html>-->
