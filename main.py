@@ -1,8 +1,10 @@
+#!venv/bin/python
 # -*- coding: utf-8 -*-
 """main file for wikiSearch"""
 import os
+import json
 
-from flask import Flask, render_template, session, redirect, url_for
+from flask import Flask, render_template, session, redirect, url_for, jsonify, make_response
 from flask_script import Manager
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
@@ -11,7 +13,7 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import Required, URL
 from flask_sqlalchemy import SQLAlchemy
 
-import reSearch
+import cachedSearch
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
@@ -61,7 +63,7 @@ class UrlDb(db.Model):
 def index():
     form = UrlForm()
     if form.validate_on_submit():
-        session['url'] = form.url.data
+        session['url'] = cachedSearch.mobile_to_desktop(form.url.data)
         url_obj = UrlDb.query.filter_by(url=session['url']).first()
         try:
             print(url_obj.road)
@@ -71,9 +73,12 @@ def index():
             session['road'] = (url_obj.road
                                + '. Distance = ' + str(url_obj.distance.distance))
         else:
-            result_list = reSearch.hit_search(session['url'])
-            session['road'] = (result_list[0].road
-                              + '. Distance = ' + str(result_list[0].distance))
+            #result_list = cachedSearch.hit_search(session['url'])
+            cachedSearchObj = cachedSearch.cachedSearch(session['url'])
+            cachedSearchObj.search()
+            result_list = cachedSearchObj.getListOfSites()
+            session['road'] = (result_list[-1].road
+                               + '. Distance = ' + str(result_list[-1].distance))
             store_result(result_list)
         return redirect(url_for('index'))
     road = session.get('road', None)
@@ -83,9 +88,30 @@ def index():
         pass
     return render_template('index.html', form=form, result=road)
 
-@app.route('/results')
-def result():
-    return render_template('result.hmtl')
+@app.route('/submit', methods=['GET', 'POST'])
+def submit():
+    form = UrlForm()
+    if form.validate_on_submit():
+        session['url'] = cachedSearch.mobile_to_desktop(form.url.data)
+        url_obj = UrlDb.query.filter_by(url=session['url']).first()
+        try:
+            print(url_obj.road)
+        except:
+            print('No object defined')
+        if url_obj:
+            session['road'] = (url_obj.road
+                               + '. Distance = ' + str(url_obj.distance.distance))
+        else:
+            #result_list = cachedSearch.hit_search(session['url'])
+            cachedSearchObj = cachedSearch.cachedSearch(session['url'])
+            cachedSearchObj.search()
+            result_list = cachedSearchObj.getListOfSites()
+            session['road'] = (result_list[-1].road
+                               + '. Distance = ' + str(result_list[-1].distance))
+            store_result(result_list)
+        response = make_response(json.dumps(session['road']))
+        response.content_type = 'application/json'
+        return response
 
 @app.errorhandler(404)
 def page_not_found(e):
