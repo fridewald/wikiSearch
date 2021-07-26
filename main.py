@@ -18,7 +18,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
 # set key for some security functions
-app.config['SECRET_KEY'] = 'ansdaerofbcp348p2M432023ML+#th5'
+app.config['SECRET_KEY'] = 'XXXXXXXXXXXXXXXXX'
 # SQLAlchemy configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
